@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import { createPortal } from 'react-dom';
-import { Overlay, ModalContainer} from './Modal.styled';
+import { Overlay, ModalContainer } from './Modal.styled';
 import PropTypes from 'prop-types';
 
 const rootModal = document.querySelector('#root-modal');
@@ -9,6 +9,9 @@ export default class Modal extends Component {
   componentDidMount() {
     window.addEventListener('keydown', this.handleEscape);
   }
+  //   useEffect(() => {
+  //     window.addEventListener('keydown', this.handleEscape);
+  // };[]);
 
   componentWillUnmount() {
     window.removeEventListener('keydown', this.handleEscape);
@@ -27,15 +30,15 @@ export default class Modal extends Component {
   };
 
   render() {
-      const { image, tags } = this.props;
-      
+    const { image, tags } = this.props;
+
     return createPortal(
       <Overlay onClick={this.handleBackdrop}>
-            <ModalContainer>
-                 <img src={image} alt={tags } />
+        <ModalContainer>
+          <img src={image} alt={tags} />
         </ModalContainer>
-      </Overlay>
-   , rootModal
+      </Overlay>,
+      rootModal
     );
   }
 }

@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import {
   SearchbarHeader,
   SearchForm,
@@ -8,49 +8,40 @@ import {
 } from './Searchbar.styled';
 import { toast } from 'react-toastify';
 
-export default class Searchbar extends Component {
-  state = {
-    searchQuery: '',
+export default function Searchbar({ onSubmit }) {
+  const [query, setQuery] = useState('');
+
+  const onInputChange = e => {
+    setQuery(e.currentTarget.value);
   };
 
-  onInputChange = e => {
-    this.setState({ searchQuery: e.currentTarget.value.toLowerCase().trim() });
-  };
-
-  formSubmite = e => {
+  const formSubmite = e => {
     e.preventDefault();
-    if (this.state.searchQuery.trim() === '') {
-      this.props.value();
+    if (query.trim() === '') {
+      // this.props.value();
       toast.warn('🦄 Please specify your query!');
       return;
     }
-    this.props.onSubmit(this.state.searchQuery);
-
-    this.resetInput();
+    onSubmit(query);
+    setQuery('');
   };
 
-  resetInput = () => {
-    this.setState({ searchQuery: '' });
-  };
+  return (
+    <SearchbarHeader>
+      <SearchForm onSubmit={formSubmite}>
+        <SearchFormButton type="submit">
+          <SearchFormButtonLabel>Search</SearchFormButtonLabel>
+        </SearchFormButton>
 
-  render() {
-    return (
-      <SearchbarHeader>
-        <SearchForm onSubmit={this.formSubmite}>
-          <SearchFormButton type="submit">
-            <SearchFormButtonLabel>Search</SearchFormButtonLabel>
-          </SearchFormButton>
-
-          <SearchFormInput
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={this.state.searchQuery}
-            onChange={this.onInputChange}
-          />
-        </SearchForm>
-      </SearchbarHeader>
-    );
-  }
+        <SearchFormInput
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          value={query}
+          onChange={onInputChange}
+        />
+      </SearchForm>
+    </SearchbarHeader>
+  );
 }
