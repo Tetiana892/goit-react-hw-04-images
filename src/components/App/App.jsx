@@ -3,13 +3,13 @@ import { Container } from './App.styled';
 import ScrollToTop from 'react-scroll-to-top';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import * as Scroll from 'react-scroll';
 
 import Searchbar from '../Searchbar/Searchbar';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import Modal from '../Modal/Modal';
 import { fetchImage } from '../services/api';
 import Button from 'components/Button/Button';
-import scroll from 'components/services/scroll';
 import Loader from 'components/Loader/Loader';
 
 export default class App extends Component {
@@ -101,7 +101,7 @@ export default class App extends Component {
           toast.info("🦄 You've reached the end of search results.");
         }
 
-        scroll();
+        Scroll.animateScroll.scrollMore(300, { duration: 400 });
       })
       .catch(error =>
         this.setState({ error: error.message, status: 'rejected' })
