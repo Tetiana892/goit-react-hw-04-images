@@ -11,14 +11,9 @@ import { toast } from 'react-toastify';
 export default function Searchbar({ onSubmit }) {
   const [query, setQuery] = useState('');
 
-  const onInputChange = e => {
-    setQuery(e.currentTarget.value);
-  };
-
   const formSubmite = e => {
     e.preventDefault();
     if (query.trim() === '') {
-      // this.props.value();
       toast.warn('🦄 Please specify your query!');
       return;
     }
@@ -39,7 +34,7 @@ export default function Searchbar({ onSubmit }) {
           autoFocus
           placeholder="Search images and photos"
           value={query}
-          onChange={onInputChange}
+          onChange={e => setQuery(e.currentTarget.value)}
         />
       </SearchForm>
     </SearchbarHeader>

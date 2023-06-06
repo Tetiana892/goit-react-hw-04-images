@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Container } from './App.styled';
 import ScrollToTop from 'react-scroll-to-top';
 import { ToastContainer, toast } from 'react-toastify';
@@ -12,141 +12,111 @@ import { fetchImage } from '../services/api';
 import Button from 'components/Button/Button';
 import Loader from 'components/Loader/Loader';
 
-export default class App extends Component {
-  state = {
-    searchQuery: '',
-    page: 1,
-    images: [],
-    status: 'idle',
-    totalHits: 0,
-    error: '',
-    showModal: false,
-    modalImage: [],
-  };
+export default function App() {
+  const [images, setImages] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalHits, setTotalHits] = useState(0);
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState('idle');
 
-  searchValue = newQuery => {
-    if (newQuery !== this.state.searchQuery) {
-      this.setState({
-        searchQuery: newQuery,
-        page: 1,
-      });
+  const searchValue = newQuery => {
+    if (newQuery !== searchQuery) {
+      setSearchQuery(newQuery);
+      setPage(1);
     }
   };
 
-  LoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const LoadMore = () => setPage(prevPage => prevPage + 1);
+
+  const toggleModal = largeImageURL => {
+    setShowModal(!showModal);
+    setModalImage(largeImageURL);
   };
 
-  toggleModal = largeImageURL => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      modalImage: largeImageURL,
-    }));
+  const errorString = () => {
+    setImages([]);
+    setStatus('rejected');
+    setError(toast.warn('🦄 Please specify your query!'));
   };
 
-  errorString = async () => {
-    await this.setState({
-      images: [],
-      status: 'rejected',
-      error: [],
-    });
-  };
-
-  componentDidUpdate(_, prevState) {
-    const prevImages = prevState.searchQuery;
-    const prevPage = prevState.page;
-
-    const nextImages = this.state.searchQuery;
-    const nextPage = this.state.page;
-
-    if (prevImages !== nextImages || prevPage !== nextPage) {
-      this.setState({
-        status: 'pending',
-      });
-      if (nextPage === 1) {
-        this.setState({ images: [] });
-      }
-      this.fetchGallery();
+  useEffect(() => {
+    if (!searchQuery) {
+      return;
     }
-  }
+    setStatus('pending');
+    if (page === 1) {
+      setImages([]);
+    }
+    fetchGallery();
 
-  fetchGallery = () => {
-    const { searchQuery, page } = this.state;
+    async function fetchGallery() {
+      await fetchImage(searchQuery, page)
+        .then(response => {
+          setImages(prevImages => [...prevImages, ...response.hits]);
+          setStatus('resolved');
+          setTotalHits(response.totalHits);
 
-    fetchImage(searchQuery, page)
-      .then(response => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...response.hits],
-          status: 'resolved',
-          totalHits: response.totalHits,
-        }));
+          if (response.hits.length === 0) {
+            setStatus('rejected');
+            toast.error('🦄Sorry, no images found. Please, try again!');
+            return;
+          }
 
-        if (response.hits.length === 0) {
-          this.setState({
-            status: 'rejected',
-            return: toast.error('🦄Sorry, no images found. Please, try again!'),
-          });
-          return;
-        }
+          if (page === 1) {
+            toast.success(`🦄 Hooray! We found ${response.totalHits} images.`);
+          }
 
-        if (page === 1) {
-          toast.success(`🦄 Hooray! We found ${response.totalHits} images.`);
-        }
+          const totalPages = Math.ceil(response.totalHits / 12);
 
-        const totalPages = Math.ceil(response.totalHits / 12);
+          if (page === totalPages) {
+            toast.info("🦄 You've reached the end of search results.");
+          }
+          Scroll.animateScroll.scrollMore(300, { duration: 400 });
+        })
+        .catch(error => {
+          setError(error.message);
+          setStatus('rejected');
+        });
+    }
+  }, [searchQuery, page]);
 
-        if (page === totalPages) {
-          toast.info("🦄 You've reached the end of search results.");
-        }
+  return (
+    <Container>
+      <Searchbar onSubmit={searchValue} value={errorString} />
 
-        Scroll.animateScroll.scrollMore(300, { duration: 400 });
-      })
-      .catch(error =>
-        this.setState({ error: error.message, status: 'rejected' })
-      );
-  };
+      {status !== 'idle' && images.length > 0 && (
+        <ImageGallery images={images} toggleModal={toggleModal} />
+      )}
 
-  render() {
-    const { images, status, error, showModal, modalImage, totalHits } =
-      this.state;
+      {status === 'resolved' && images.length !== totalHits && (
+        <Button onClick={LoadMore} />
+      )}
 
-    return (
-      <Container>
-        <Searchbar onSubmit={this.searchValue} value={this.errorString} />
+      {status === 'rejected' && (
+        <h1 style={{ color: 'orangered', textAlign: 'center' }}>
+          {error.message}
+        </h1>
+      )}
 
-        {status !== 'idle' && images.length > 0 && (
-          <ImageGallery images={images} toggleModal={this.toggleModal} />
-        )}
+      {status === 'pending' && <Loader />}
 
-        {status === 'resolved' && images.length !== totalHits && (
-          <Button onClick={this.LoadMore} />
-        )}
+      {showModal && <Modal image={modalImage} onClose={toggleModal} />}
 
-        {status === 'rejected' && (
-          <h1 style={{ color: 'orangered', textAlign: 'center' }}>
-            {error.message}
-          </h1>
-        )}
-
-        {status === 'pending' && <Loader />}
-
-        {showModal && <Modal image={modalImage} onClose={this.toggleModal} />}
-
-        <ScrollToTop
-          smooth
-          width="20"
-          height="20"
-          color="white"
-          style={{
-            borderRadius: 50,
-            backgroundColor: '#5b69ba',
-            fontweight: 500,
-          }}
-        />
-        <ToastContainer theme="colored" position="top-right" autoClose={3000} />
-      </Container>
-    );
-  }
+      <ScrollToTop
+        smooth
+        width="20"
+        height="20"
+        color="white"
+        style={{
+          borderRadius: 50,
+          backgroundColor: '#5b69ba',
+          fontweight: 500,
+        }}
+      />
+      <ToastContainer theme="colored" position="top-right" autoClose={3000} />
+    </Container>
+  );
 }
