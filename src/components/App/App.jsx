@@ -40,7 +40,7 @@ export default function App() {
   const errorString = () => {
     setImages([]);
     setStatus('rejected');
-    setError(toast.warn('🦄 Please specify your query!'));
+    setError(toast.warn('🦄 Please specify your query'));
   };
 
   useEffect(() => {

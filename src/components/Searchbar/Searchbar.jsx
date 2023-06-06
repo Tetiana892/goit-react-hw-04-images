@@ -6,15 +6,14 @@ import {
   SearchFormButtonLabel,
   SearchFormInput,
 } from './Searchbar.styled';
-import { toast } from 'react-toastify';
 
-export default function Searchbar({ onSubmit }) {
+export default function Searchbar({ onSubmit, value }) {
   const [query, setQuery] = useState('');
 
   const formSubmite = e => {
     e.preventDefault();
     if (query.trim() === '') {
-      toast.warn('🦄 Please specify your query!');
+      value();
       return;
     }
     onSubmit(query);
