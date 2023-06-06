@@ -26,6 +26,7 @@ export default function App() {
     if (newQuery !== searchQuery) {
       setSearchQuery(newQuery);
       setPage(1);
+      setImages([]);
     }
   };
 
