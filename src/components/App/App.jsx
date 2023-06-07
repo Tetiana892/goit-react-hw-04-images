@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container } from './App.styled';
 import ScrollToTop from 'react-scroll-to-top';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import * as Scroll from 'react-scroll';
 
@@ -48,23 +48,19 @@ export default function App() {
       return;
     }
     setStatus('pending');
-    if (page === 1) {
-      setImages([]);
-    }
     fetchGallery();
 
     async function fetchGallery() {
       await fetchImage(searchQuery, page)
         .then(response => {
-          setImages(prevImages => [...prevImages, ...response.hits]);
-          setStatus('resolved');
-          setTotalHits(response.totalHits);
-
           if (response.hits.length === 0) {
             setStatus('rejected');
             toast.error('🦄Sorry, no images found. Please, try again!');
             return;
           }
+          setImages(prevImages => [...prevImages, ...response.hits]);
+          setStatus('resolved');
+          setTotalHits(response.totalHits);
 
           if (page === 1) {
             toast.success(`🦄 Hooray! We found ${response.totalHits} images.`);
@@ -101,11 +97,8 @@ export default function App() {
           {error.message}
         </h1>
       )}
-
       {status === 'pending' && <Loader />}
-
       {showModal && <Modal image={modalImage} onClose={toggleModal} />}
-
       <ScrollToTop
         smooth
         width="20"
@@ -117,7 +110,6 @@ export default function App() {
           fontweight: 500,
         }}
       />
-      <ToastContainer theme="colored" position="top-right" autoClose={3000} />
     </Container>
   );
 }
